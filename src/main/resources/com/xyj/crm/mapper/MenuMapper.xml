@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+ <mapper namespace="com.xyj.crm.mapper.MenuMapper">
+  
+	<resultMap id="BaseResultMap" type="com.xyj.crm.model.MenuModel">
+		<result column="id" property="id" />
+		<result column="code" property="code" />
+		<result column="name" property="name" />
+		<result column="url" property="url" />
+		<result column="parent" property="parentCode" />
+		<result column="level" property="level" />
+		<result column="order" property="order" />
+		<result column="parent_name" property="parentName" />
+	</resultMap>
+  
+	<sql id="Base_Column_List">
+		id,code,name,url,parent_code as parent,level
+		,(select name from mis_schema.menu where  parent = mis_schema.menu.code) parent_name
+	</sql>
+	
+	<sql id="Append_Where">
+		where 1=1 
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="code != null and code != ''">
+				and code LIKE #{code}
+			</if>
+			<if test="parentCode != null and parentCode != ''">
+				and parent_code = #{parentCode}
+			</if>
+			<if test="name != null and name != ''">
+				and name LIKE #{name}
+			</if>
+			<if test="level != null and level != ''">
+				and level = #{level}
+			</if>
+			<if test="orderby != null and orderby != ''">
+				order by  ${orderby}
+			</if>
+	</sql>
+  
+  	<insert id="insert" parameterType="Object">
+		INSERT INTO mis_schema.menu(code,name,url,parent_code,level)
+		VALUES(#{code},#{name}, #{url}, #{parentCode},#{level})
+	</insert>
+  
+  	<select id="selectAll" resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.menu
+		<include refid="Append_Where" />
+	</select>
+	
+	<select id="selectModel" resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.menu 
+		<include refid="Append_Where" />
+		LIMIT ${rowStart},${pageLimit}
+	</select>
+    
+  	<select id="select" resultMap="BaseResultMap" parameterType="Object">
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.menu WHERE code = #{id}
+	</select>
+	
+	<select id="selectCount" resultType="java.lang.Integer"  >
+		SELECT count(1) FROM mis_schema.menu 
+		<include refid="Append_Where" />
+	</select>
+	
+	<delete id="delete" parameterType="Object">
+		DELETE FROM mis_schema.menu WHERE code = #{id}
+	</delete>
+	
+	<update id="update" parameterType="Object">
+		UPDATE mis_schema.menu SET
+		url = #{url}
+		WHERE code = #{code}
+	</update>
+	
+	<update id="updateActive" parameterType="Object">
+		UPDATE mis_schema.menu SET 
+		<trim suffixOverrides=",">
+			<if test="name != null and name != '' ">
+				name = #{name},
+			</if>
+			<if test="url != null and url != '' ">
+				url = #{url},
+			</if>
+			<if test="parentCode != null and parentCode != '' ">
+				parent_code = #{parentCode},
+			</if>
+			<if test="level != null and level != '' ">
+				level = #{level},
+			</if>
+		</trim>
+		WHERE code = #{code}
+	</update>
+	
+	<select id="selectUpMenu" resultMap="BaseResultMap" parameterType="Object">
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.menu WHERE parent_code = "00" OR parent_code = "zz"
+	</select>
+	
+ </mapper>

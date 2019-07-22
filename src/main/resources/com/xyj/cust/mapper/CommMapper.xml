@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.xyj.cust.mapper.CommMapper">
+
+	<resultMap id="BaseResultMap" type="com.xyj.cust.model.CommModel">
+		<result column="id" property="id" />
+		<result column="user_code" property="userCode" />
+		<result column="cust_code" property="custCode" />
+		<result column="create_time" property="createTime" />
+		<result column="type" property="type" />
+		<result column="descr" property="descr" />
+		<result column="deleted" property="deleted" />
+		
+		<result column="user_name" property="userName" />
+		<result column="cust_name" property="custName" />
+		
+	</resultMap>
+  
+	<sql id="Base_Column_List">
+		id,user_code,cust_code,create_time,type,descr,deleted
+		,(SELECT name FROM mis_schema.user WHERE code = user_code) user_name 
+		,(SELECT name FROM mis_schema.customer_info WHERE code = cust_code) cust_name
+	</sql>
+	
+	<sql id="Append_Where">
+		where 1=1 
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="userCode != null and userCode != ''">
+				and user_code LIKE #{userCode}
+			</if>
+			<if test="custCode != null and custCode != ''">
+				and cust_code = #{custCode}
+			</if>
+			<if test="type != null and type != ''">
+				and type LIKE #{type}
+			</if>
+			<if test="descr != null and descr != ''">
+				and descr = #{descr}
+			</if>
+			<if test="deleted != null">
+				and deleted = #{deleted}
+			</if>
+			<if test="orderby != null and orderby != ''">
+				order by  ${orderby}
+			</if>
+	</sql>
+  
+  	<insert id="insert" parameterType="Object">
+		INSERT INTO mis_schema.customer_communication(user_code,cust_code,create_time,type,descr,deleted)
+		VALUES(#{userCode},#{custCode}, #{createTime}, #{type},#{descr},#{deleted})
+	</insert>
+  
+  	<select id="selectAll" resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.customer_communication
+		<include refid="Append_Where" />
+	</select>
+	
+	<select id="selectModel" resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.customer_communication
+		<include refid="Append_Where" />
+		LIMIT ${rowStart},${pageLimit}
+	</select>
+    
+  	<select id="select" resultMap="BaseResultMap" parameterType="Object">
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.customer_communication WHERE id = #{id}
+	</select>
+	
+	<select id="selectCount" resultType="java.lang.Integer"  >
+		SELECT count(1) FROM mis_schema.customer_communication
+		<include refid="Append_Where" />
+	</select>
+	
+	<delete id="delete" parameterType="Object">
+		DELETE FROM mis_schema.customer_communication WHERE id = #{id}
+	</delete>
+
+	<update id="update" parameterType="Object">
+		UPDATE mis_schema.customer_communication SET
+		deleted = #{deleted}
+		WHERE id = #{id}
+	</update>
+
+	<update id="updateBatch" parameterType="Object">
+		UPDATE mis_schema.customer_communication SET
+		deleted = 1
+		WHERE id = #{id}
+	</update>
+
+	<update id="updateActive" parameterType="Object">
+		UPDATE mis_schema.customer_communication SET 
+		<trim suffixOverrides=",">
+			<if test="custCode != null and custCode != '' ">
+				cust_code = #{custCode},
+			</if>
+			<if test="descr != null and descr != '' ">
+				descr = #{descr},
+			</if>
+		</trim>
+		WHERE id = #{id}
+	</update>
+
+</mapper>

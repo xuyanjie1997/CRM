@@ -1,0 +1,22 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /CRM
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: 123456
+    url: jdbc:mysql://127.0.0.1:3306/mis_schema?useSSL=false&useUnicode=true&characterEncoding=UTF8&serverTimezone=Hongkong
+    username: root
+  mvc:
+    view: 
+      prefix: /
+      suffix: .jsp
+      
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.xyj.*.model
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+        
+  

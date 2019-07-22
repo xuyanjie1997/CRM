@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+ <mapper namespace="com.xyj.cust.mapper.SaleMapper">
+  
+	<resultMap id="BaseResultMap" type="com.xyj.cust.model.SaleModel">
+		<result column="id" property="id" />
+		<result column="user_code" property="userCode" />
+		<result column="cust_code" property="custCode" />
+		<result column="mdse_code" property="mdseCode" />
+		<result column="volume" property="volume"/>
+		<result column="create_time" property="createTime" />
+		<result column="deleted" property="deleted" />
+		<result column="state" property="state" />
+		<result column="update_by" property="updateBy" />
+		<result column="update_time" property="updateTime" />
+		
+		<result column="user_name" property="userName" />
+		<result column="cust_name" property="custName" />
+		<result column="mdse_name" property="mdseName" />
+		<result column="state_name" property="stateName" />
+		
+		<result column="num" property="volume"/>
+	</resultMap>
+  
+	<sql id="Base_Column_List">
+		id,user_code,cust_code,mdse_code,create_time,deleted,volume,state,update_by,update_time
+		, (SELECT name from mis_schema.user where code = user_code)  user_name
+		,(SELECT name from mis_schema.customer_info where code = cust_code)  cust_name
+		,(SELECT name from mis_schema.customer_merchandise where code = mdse_code)  mdse_name
+		,(SELECT name from mis_schema.dictionary where code = state)  state_name
+	</sql>
+	
+	<sql id="Append_Where">
+		where 1=1 
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="userCode != null and userCode != ''">
+				and user_code LIKE #{userCode}
+			</if>
+			<if test="custCode != null and custCode != ''">
+				and cust_code LIKE #{custCode}
+			</if>
+			<if test="mdseCode != null and mdseCode != ''">
+				and mdse_code LIKE #{mdseCode}
+			</if>
+			<if test="deleted != null">
+				and deleted = #{deleted}
+			</if>
+			<if test="orderby != null and orderby != ''">
+				order by  ${orderby}
+			</if>
+	</sql>
+  
+  	<insert id="insert" parameterType="Object">
+		INSERT INTO mis_schema.customer_sale
+		(user_code,cust_code,mdse_code,create_time,deleted,volume,state,update_by,update_time)
+		VALUES(#{userCode},#{custCode}, #{mdseCode},#{createTime},#{deleted},#{volume},#{state},#{updateBy},#{updateTime})
+	</insert>
+  
+  	<select id="selectAll" resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.customer_sale
+		<include refid="Append_Where" />
+	</select>
+	
+	<select id="selectModel" resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.customer_sale
+		<include refid="Append_Where" />
+		LIMIT ${rowStart},${pageLimit}
+	</select>
+    
+  	<select id="select" resultMap="BaseResultMap" parameterType="Object">
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.customer_sale WHERE id = #{id}
+	</select>
+	
+	<select id="selectCount" resultType="java.lang.Integer"  >
+		SELECT count(1) FROM mis_schema.customer_sale
+		<include refid="Append_Where" />
+	</select>
+	
+	<select id="selectByCodes" resultMap="BaseResultMap" parameterType="Object" >
+		SELECT <include refid="Base_Column_List" /> 
+		FROM mis_schema.customer_sale
+		WHERE user_code = #{userCode} AND cust_code = #{custCode} AND mdse_code = #{mdseCode}
+	</select>
+	
+	<select id="selectVolume" resultMap="BaseResultMap" parameterType="Object">
+		SELECT mdse_code,sum(volume) AS num 
+		,(SELECT name from mis_schema.customer_merchandise where code = mdse_code)  mdse_name
+		FROM mis_schema.customer_sale WHERE deleted = 0  
+		GROUP BY mdse_code ;
+	</select>
+	
+	<delete id="delete" parameterType="Object">
+		DELETE FROM mis_schema.customer_sale WHERE id = #{id}
+	</delete>
+	
+	<update id="update" parameterType="Object">
+		UPDATE mis_schema.customer_sale SET
+		deleted = #{deleted}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateActive" parameterType="Object">
+		UPDATE mis_schema.customer_sale SET 
+		<trim suffixOverrides=",">
+			<if test="userCode != null and userCode != ''">
+				user_code = #{userCode},
+			</if>
+			<if test="custCode != null and custCode != ''">
+				cust_code = #{custCode},
+			</if>
+			<if test="mdseCode != null and mdseCode != ''">
+				mdse_code = #{mdseCode},
+			</if>
+			<if test="updateTime != null and updateTime != ''">
+				update_time = #{updateTime},
+			</if>
+			<if test="updateBy != null and updateBy != ''">
+				update_by = #{updateBy},
+			</if>
+			<if test="volume != null ">
+				volume = #{volume},
+			</if>
+			<if test="state != null and state != ''">
+				state = #{state},
+			</if>
+		</trim>
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateBatch" parameterType="Object">
+		UPDATE mis_schema.customer_sale SET
+		deleted = 1
+		WHERE id = #{id}
+	</update>
+	
+ </mapper>

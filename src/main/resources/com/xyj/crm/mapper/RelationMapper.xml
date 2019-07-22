@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+ <mapper namespace="com.xyj.crm.mapper.RelationMapper">
+  
+	<resultMap id="BaseResultMap" type="com.xyj.crm.model.RelationModel">
+		<result column="id" property="id" />
+		<result column="role_code" property="roleCode" />
+		<result column="menu_code" property="menuCode" />
+		<association property="roleModel" javaType="com.xyj.crm.model.RoleModel">
+			<result column="role_code" property="code" />
+			<result column="role_name" property="name" />
+		</association>
+		<association property="menuModel" javaType="com.xyj.crm.model.MenuModel">
+			<result column="menu_code" property="code" />
+			<result column="menu_name" property="name" />
+			<result column="menu_url" property="url" />
+			<result column="menu_parent_code" property="parentCode" />
+		</association>
+	</resultMap>
+  
+	<sql id="Base_Column_List">
+		id,role_code,menu_code
+		,(SELECT name FROM mis_schema.role WHERE code = role_code) role_name
+		,(SELECT name FROM mis_schema.menu WHERE code = menu_code) menu_name
+		,(SELECT url FROM mis_schema.menu WHERE code = menu_code) menu_url
+		,(SELECT parent_code FROM mis_schema.menu WHERE code = menu_code) menu_parent_code
+	</sql>
+	
+	<sql id="Append_Where">
+		where 1=1
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="roleCode != null and roleCode != ''">
+				and role_code LIKE #{roleCode}
+			</if>
+			<if test="menuCode != null and menuCode != ''">
+				and menu_code LIKE #{menuCode}
+			</if>
+			<if test="orderby != null and orderby != ''">
+				order by  ${orderby}
+			</if>
+	</sql>
+  
+    <insert id="insert" parameterType="Object">
+		INSERT INTO mis_schema.relation(role_code,menu_code)
+		VALUES(#{roleCode},#{menuCode})
+	</insert>
+  
+  	<select id="selectAll" resultMap="BaseResultMap" >
+		select <include refid="Base_Column_List" />
+		from mis_schema.relation
+		<include refid="Append_Where" />
+	</select>
+	
+	<select id="selectModel" resultMap="BaseResultMap" >
+		select <include refid="Base_Column_List" />
+		from mis_schema.relation
+		<include refid="Append_Where" />
+		LIMIT ${rowStart},${pageLimit}
+	</select>
+	
+	<select id="selectCount" resultType="java.lang.Integer"  >
+		SELECT count(1) FROM mis_schema.relation 
+		<include refid="Append_Where" />
+	</select>
+	
+	<select id="select" resultMap="BaseResultMap" parameterType="Object">
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.relation WHERE id = #{id}
+	</select>
+	
+	<select id="selectByCodes" resultMap="BaseResultMap" parameterType="Object">
+		SELECT <include refid="Base_Column_List" />
+		FROM mis_schema.relation WHERE role_code = #{roleCode} AND menu_code = #{menuCode}
+	</select>
+	
+	<delete id="delete" parameterType="Object">
+		DELETE FROM mis_schema.relation WHERE id = #{id}
+	</delete>
+	
+	<update id="update" parameterType="Object">
+		UPDATE mis_schema.relation SET
+		menu_code = #{menuCode}
+		WHERE id = #{id}
+	</update>
+	
+ </mapper>
